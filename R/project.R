@@ -13,6 +13,17 @@
 }
 
 
+.internalProjection=function(expg,sys,nlim=4000,center=T,scale=T){
+  comg=intersect(rownames(sys$gw),rownames(expg))
+  if(length(comg)<nlim){
+    return(NA)
+  }else{
+    invs=MASS::ginv(as.matrix(sys$gw[comg,]))
+    scexp=scale(expg[comg,],center=center,scale=scale)
+    return( (t(	scexp )%*% t(invs))[,sys$k] * sys$dir)
+
+  }
+}
 
 
 #' projectMolGrad
@@ -24,46 +35,49 @@
 #' @export
 #'
 #' @examples
-projectMolGrad=function(newexp,geneSymbols){
 
+
+projectMolGrad=function(newexp,geneSymbols,normalize=c("newRef","sameAsRef","raw")){
+
+  normalize=match.arg(normalize)
   if(nrow(newexp)!= length(geneSymbols)){
     stop("geneSymbols should be a vector of gene symbols exactly corresponding to each row of the newexp dataset")
   }
   expg=pdacmolgrad:::.getUGM(newexp,geneSymbols,rowSds(as.matrix(newexp)))
 
 
+  projsL=lapply(molGradSys,function(mg){
+    proj=.internalProjection(expg, mg,nlim=4000,center=T,scale=T)
+    if(is.na(proj[1])){
+      return(rep(NA,ncol(expg)))
+    }
 
-  comg=intersect(rownames(pdacmolgrad:::molgradeSystems$pdx),rownames(expg))
-  if(length(comg)<5000){
-    pdxproj=NA
-  }else{
-    invs=MASS::ginv(as.matrix(molgradeSystems$pdx[comg,]))
-    scexp=scale(expg[comg,])
-    pdxprojInvSc=t(t((t(	scexp )%*% t(invs))))[,1]
-    pdxproj=(pdxprojInvSc-mean(pdxprojInvSc))/(3*sd(pdxprojInvSc))
+    switch(normalize,
+           newRef={
+             fproj=( (proj -mean(proj))/(3*sd(proj)) )
+           },
+           sameAsRef={
+             fproj=( (proj -mg$avg)/(mg$sd) )
+           },
+           raw={
+             fproj=proj
+           },
+           {
+             fproj=proj
+           }
+
+
+    )
+
+    return(fproj)
+
+  })
+
+
+
+  if(all(sapply(lapply(projsL,is.na),all))){
+    stop("geneSymbols should be a vector of Hugo gene symbols")
   }
 
-  comg=intersect(rownames(pdacmolgrad:::molgradeSystems$icgc),rownames(expg))
-  scexp=scale(expg[comg,])
-  if(length(comg)<5000){
-    icgcproj=NA
-  }else{
-    invs=MASS::ginv(as.matrix(pdacmolgrad:::molgradeSystems$icgc[comg,]))
-    icgcprojInvSc=t(t((t(	scexp )%*% t(invs))))[,1]
-    icgcproj=(icgcprojInvSc-mean(icgcprojInvSc))/(3*sd(icgcprojInvSc))
-
-  }
-  comg=intersect(rownames(pdacmolgrad:::molgradeSystems$puleo),rownames(expg))
-  scexp=scale(expg[comg,])
-  if(length(comg)<5000){
-    puleoproj=NA
-  }else{
-    invs=MASS::ginv(as.matrix(pdacmolgrad:::molgradeSystems$puleo[comg,]))
-    puleoprojInvSc=t(t((t(	scexp )%*% t(invs))))[,2]
-    puleoproj=(puleoprojInvSc-mean(puleoprojInvSc))/(3*sd(puleoprojInvSc))
-  }
-  data.frame(pdxproj=pdxproj,
-             icgcproj=icgcproj,
-             puleoproj=puleoproj,
-             row.names=colnames(expg),stringsAsFactors = F)
+  data.frame(do.call(cbind,projsL))
 }
