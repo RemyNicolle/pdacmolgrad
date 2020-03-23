@@ -1,7 +1,7 @@
 Package: pdacmolgrad
 Type: Package
 Title: Pancreatic Ductal Adenocarcinoma (PDAC) Molecular Gradient 
-Version: 0.1.1
+Version: 0.1.2
 Author: Remy Nicolle
 Maintainer: Remy Nicolle <remy.c.nicolle@gmail.com>
 Description: Uses whole-transcriptomic profiles to phenotype PDAC samples
