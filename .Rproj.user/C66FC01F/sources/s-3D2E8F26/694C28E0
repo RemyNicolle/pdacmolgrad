@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1579799836118.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "694C28E0",
+    "lastKnownWriteTime" : 1584983490,
+    "last_content_update" : 1584983490539,
+    "path" : "~/Workspace/DEV/pdacmolgrad/R/project.R",
+    "project_path" : "R/project.R",
+    "properties" : {
+        "cursorPosition" : "29,2",
+        "scrollLine" : "21"
+    },
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
