@@ -28,13 +28,24 @@
 
 #' projectMolGrad
 #'
-#' @param newexp gene expression matrix or dataframe with gene in row and sample in columns.
-#' @param geneSymbols vector of gene symbols for the newexp dataset (simply set to rownames if the newexp is already in single values per gene symbols)
+#' @description Project a transcriptomic dataset on the Pancreatic Adenocarcinoma Molecular Gradient
+#' Will throw an error if there is only one sample (one column)
 #'
-#' @return data frame of three projections
+#' @param newexp gene expression matrix or dataframe with gene in row(names) and samples in columns(names).
+#' @param geneSymbols vector of gene symbols for the newexp dataset (simply set to rownames if the newexp is already in single values per gene symbols)
+#' #' @param normalize Normalization (i.e. calibration) of the molecular gradient systems
+#'
+#' @return data frame of four projections based on the molecular gradients computed from four different types of expression datasets
+#'
+#' @details
+#'
+#'
 #' @export
 #'
+#'
 #' @examples
+#' g=rownames(pdacmolgrad:::.molGradSys$PDX$gw)
+#' projectMolGrad(matrix(rnorm(length(g)*10),ncol=10),g)
 
 
 projectMolGrad=function(newexp,geneSymbols,normalize=c("newRef","sameAsRef","raw")){
@@ -42,7 +53,7 @@ projectMolGrad=function(newexp,geneSymbols,normalize=c("newRef","sameAsRef","raw
   if(nrow(newexp)!= length(geneSymbols)){
     stop("geneSymbols should be a vector of gene symbols exactly corresponding to each row of the newexp dataset")
   }
-  expg=pdacmolgrad:::.getUGM(newexp,geneSymbols,rowSds(as.matrix(newexp)))
+  expg=pdacmolgrad:::.getUGM(newexp,geneSymbols,matrixStats::rowSds(as.matrix(newexp)))
   projsL=lapply(.molGradSys,function(mg){
     proj=.internalProjection(expg, mg,nlim=4000,center=T,scale=T)
     if(is.na(proj[1])){
