@@ -38,20 +38,16 @@
 
 
 projectMolGrad=function(newexp,geneSymbols,normalize=c("newRef","sameAsRef","raw")){
-
   normalize=match.arg(normalize)
   if(nrow(newexp)!= length(geneSymbols)){
     stop("geneSymbols should be a vector of gene symbols exactly corresponding to each row of the newexp dataset")
   }
   expg=pdacmolgrad:::.getUGM(newexp,geneSymbols,rowSds(as.matrix(newexp)))
-
-
   projsL=lapply(molGradSys,function(mg){
     proj=.internalProjection(expg, mg,nlim=4000,center=T,scale=T)
     if(is.na(proj[1])){
       return(rep(NA,ncol(expg)))
     }
-
     switch(normalize,
            newRef={
              fproj=( (proj -mean(proj))/(3*sd(proj)) )
@@ -65,19 +61,11 @@ projectMolGrad=function(newexp,geneSymbols,normalize=c("newRef","sameAsRef","raw
            {
              fproj=proj
            }
-
-
     )
-
     return(fproj)
-
   })
-
-
-
   if(all(sapply(lapply(projsL,is.na),all))){
     stop("geneSymbols should be a vector of Hugo gene symbols")
   }
-
   data.frame(do.call(cbind,projsL))
 }
